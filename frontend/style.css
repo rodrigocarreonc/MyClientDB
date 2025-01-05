@@ -1,0 +1,37 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.notes {
+    margin-top: 20px;
+}    
+.notes a {
+    text-decoration: none; /* Eliminar subrayado del enlace */
+    color: inherit; /* Heredar el color del texto */
+    display: block; /* Hacer que el enlace ocupe todo el div */
+}
+.note {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+.logout-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.logout-button i {
+    margin-right: 5px;
+}
