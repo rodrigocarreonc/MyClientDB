@@ -56,6 +56,9 @@ $connections = json_decode($responseConnections, true);
 
     <div class="notes">
         <h2>Tus conexiones remotas:</h2>
+        <button class="add-connection-button" onclick="window.location.href='add_connection.php'">
+            <i class="fas fa-plus"></i> Agregar Conexión
+        </button>
         <?php if (!empty($connections)): ?>
             <?php foreach ($connections as $connection): ?>
                 <a href="connection.php?id=<?php echo urlencode($connection['id']); ?>">
@@ -63,7 +66,6 @@ $connections = json_decode($responseConnections, true);
                         <h3><?php echo htmlspecialchars($connection['host']); ?></h3>
                         <small><?php echo htmlspecialchars($connection['port']); ?></small>
                         <p><?php echo htmlspecialchars($connection['username']); ?></p>
-                        <p><?php echo htmlspecialchars($connection['password']); ?></p>
                     </div>
                 </a>
             <?php endforeach; ?>

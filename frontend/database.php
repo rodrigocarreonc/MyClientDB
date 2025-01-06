@@ -31,25 +31,28 @@ if ($id && $db) {
 
     $tables = json_decode($response_tables, true);
 
-    /* Petición POST a execute-query
-    $url_query = "http://127.0.0.1:8000/api/execute-query/". urlencode($id);
-    $data_query = json_encode(["database" => $db, "query" => "SELECT * FROM Libro"]);
-    $options_query = [
-        "http" => [
-            "header" => "Content-Type: application/json\r\n" .
-                        "Authorization: Bearer " . $token . "\r\n",
-            "method" => "POST",
-            "content" => $data_query
-        ]
-    ];
-    $context_query = stream_context_create($options_query);
-    $response_query = file_get_contents($url_query, false, $context_query);
+    // Verificar si se ha enviado una consulta personalizada
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['query'])) {
+        $query = $_POST['query'];
+        $url_query = "http://127.0.0.1:8000/api/execute-query/" . urlencode($id);
+        $data_query = json_encode(["database" => $db, "query" => $query]);
+        $options_query = [
+            "http" => [
+                "header" => "Content-Type: application/json\r\n" .
+                            "Authorization: Bearer " . $token . "\r\n",
+                "method" => "POST",
+                "content" => $data_query
+            ]
+        ];
+        $context_query = stream_context_create($options_query);
+        $response_query = file_get_contents($url_query, false, $context_query);
 
-    if ($response_query === FALSE) {
-        die('Error occurred while executing query');
+        if ($response_query === FALSE) {
+            die('Error occurred while executing query');
+        }
+
+        $query_results = json_decode($response_query, true);
     }
-
-    $query_results = json_decode($response_query, true);*/
 } else {
     die('ID o base de datos no proporcionado');
 }
@@ -60,7 +63,6 @@ if ($id && $db) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalle de la Base de Datos</title>
-    <link rel="stylesheet" href="style.css">
     <style>
         .container {
             display: flex;
@@ -78,9 +80,8 @@ if ($id && $db) {
 </head>
 <body>
     <h1>Detalle de la Base de Datos</h1>
-    <h2><?php echo $db; ?></h2>
     <div class="container">
-        <div class="tables">
+    <div class="tables">
             <h2>Tablas</h2>
             <?php if (!empty($tables)): ?>
                 <?php foreach ($tables as $table): ?>
@@ -94,6 +95,10 @@ if ($id && $db) {
         </div>
         <div class="query-results">
             <h2>Resultados de la Consulta</h2>
+            <form method="POST" action="database.php?id=<?php echo urlencode($id); ?>&db=<?php echo urlencode($db); ?>">
+                <input type="text" name="query" placeholder="Escribe tu consulta aquí" required>
+                <button type="submit">Run</button>
+            </form>
             <?php if (!empty($query_results)): ?>
                 <table border="1">
                     <thead>
