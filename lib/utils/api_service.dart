@@ -90,9 +90,10 @@ class ApiService {
 
     if (response.statusCode == 200) {
       return List<Map<String, dynamic>>.from(json.decode(response.body));
-    } else {
+    }
+    else {
       throw Exception(
-        'Failed to execute query. Status code: ${response.statusCode}',
+      json.decode(response.body)['message']
       );
     }
   }

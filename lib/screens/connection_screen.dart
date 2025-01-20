@@ -104,11 +104,12 @@ class _ConnectionScreenState extends State<ConnectionScreen>
     } catch (e) {
       setState(() {
         queryResult = [];
-        errorMessage = 'Error al ejecutar la consulta: $e';
         isLoading = false;
       });
+      _showMessage(e.toString());
     }
   }
+
 
   void _showMessage(String message) {
     showDialog(
@@ -125,6 +126,7 @@ class _ConnectionScreenState extends State<ConnectionScreen>
       ),
     );
   }
+
 
   Widget _buildQueryResultTable() {
     if (queryResult.isEmpty) {
@@ -248,8 +250,6 @@ class _ConnectionScreenState extends State<ConnectionScreen>
 
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : errorMessage.isNotEmpty
-          ? Center(child: Text(errorMessage))
           : TabBarView(
         controller: _tabController,
         children: [
