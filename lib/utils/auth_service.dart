@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'jwt_storage.dart';
 
@@ -42,14 +43,18 @@ class ApiService {
   static Future<http.Response?> logout(String token) async {
     final url = Uri.parse('$baseUrl/auth/logout');
 
-    // Enviar el token en la cabecera Authorization
-    final response = await http.post(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token', // Enviar el token como Bearer Token
-      },
-    );
+    try{
+      // Enviar el token en la cabecera Authorization
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token', // Enviar el token como Bearer Token
+        },
+      );
 
-    return response;
+      return response;
+    } on SocketException{
+      throw ("Upss..\nSin conexión a internet :((");
+    }
   }
 }

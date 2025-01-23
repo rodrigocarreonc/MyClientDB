@@ -1,7 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'jwt_storage.dart';
-import 'server.dart';
 
 class ApiService {
   final String baseUrl;
@@ -12,26 +12,30 @@ class ApiService {
   Future<List<Map<String, dynamic>>> fetchDatabases(int connectionId) async {
     final url = Uri.parse('$baseUrl/databases/$connectionId');
 
-    // Obtener el JWT desde SharedPreferences
-    final jwtToken = await JwtStorage.getToken();
+    try{
+      // Obtener el JWT desde SharedPreferences
+      final jwtToken = await JwtStorage.getToken();
 
-    if (jwtToken == null) {
-      throw Exception('JWT Token is missing. Please log in again.');
-    }
+      if (jwtToken == null) {
+        throw Exception('JWT Token is missing. Please log in again.');
+      }
 
-    final headers = {
-      'Authorization': 'Bearer $jwtToken',
-      'Content-Type': 'application/json',
-    };
+      final headers = {
+        'Authorization': 'Bearer $jwtToken',
+        'Content-Type': 'application/json',
+      };
 
-    final response = await http.get(url, headers: headers);
+      final response = await http.get(url, headers: headers);
 
-    if (response.statusCode == 200) {
-      return List<Map<String, dynamic>>.from(json.decode(response.body));
-    } else {
-      throw Exception(
-        'Failed to load databases. Status code: ${response.statusCode}',
-      );
+      if (response.statusCode == 200) {
+        return List<Map<String, dynamic>>.from(json.decode(response.body));
+      } else {
+        throw Exception(
+          'Failed to load databases. Status code: ${response.statusCode}',
+        );
+      }
+    } on SocketException{
+      throw Exception("Upss..\nSin conexión a internet :((");
     }
   }
 
@@ -72,28 +76,35 @@ class ApiService {
       ) async {
     final url = Uri.parse('$baseUrl/execute-query/$connectionId');
 
-    // Obtener el JWT desde SharedPreferences
-    final jwtToken = await JwtStorage.getToken();
+    try{
 
-    if (jwtToken == null) {
-      throw Exception('JWT Token is missing. Please log in again.');
-    }
+      // Obtener el JWT desde SharedPreferences
+      final jwtToken = await JwtStorage.getToken();
 
-    final headers = {
-      'Authorization': 'Bearer $jwtToken',
-      'Content-Type': 'application/json',
-    };
+      if (jwtToken == null) {
+        throw Exception('JWT Token is missing. Please log in again.');
+      }
 
-    final body = json.encode({'database': database, 'query': query});
+      final headers = {
+        'Authorization': 'Bearer $jwtToken',
+        'Content-Type': 'application/json',
+      };
 
-    final response = await http.post(url, headers: headers, body: body);
+      final body = json.encode({'database': database, 'query': query});
 
-    if (response.statusCode == 200) {
-      return List<Map<String, dynamic>>.from(json.decode(response.body));
-    }
-    else {
+      final response = await http.post(url, headers: headers, body: body);
+
+      if (response.statusCode == 200) {
+        return List<Map<String, dynamic>>.from(json.decode(response.body));
+      }
+      else {
+        throw Exception(
+            json.decode(response.body)['message']
+        );
+      }
+    } on SocketException{
       throw Exception(
-      json.decode(response.body)['message']
+          "Upss..\nSin conexión a internet :(("
       );
     }
   }
