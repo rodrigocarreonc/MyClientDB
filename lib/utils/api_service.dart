@@ -98,12 +98,12 @@ class ApiService {
         return List<Map<String, dynamic>>.from(json.decode(response.body));
       }
       else {
-        throw Exception(
+        throw (
             json.decode(response.body)['message']
         );
       }
     } on SocketException{
-      throw Exception(
+      throw (
           "Upss..\nSin conexión a internet :(("
       );
     }
