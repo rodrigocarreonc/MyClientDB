@@ -4,6 +4,8 @@ import 'package:myclientdb/utils/auth_service.dart';
 import 'package:myclientdb/utils/jwt_storage.dart';
 import 'connection_screen.dart';
 import 'login_screen.dart';
+import '../utils/server.dart';
+import '../utils/api_service.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -12,6 +14,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late Future<List<Map<String, dynamic>>> _futureConnections;
+  final ApiService apiService = ApiService(baseUrl: Server.baseUrl);
 
   @override
   void initState() {
@@ -19,20 +22,18 @@ class _HomeScreenState extends State<HomeScreen> {
     _futureConnections = fetchConnections();
   }
 
-  // Función para refrescar la lista de conexiones
   Future<void> _refreshConnections() async {
     setState(() {
       _futureConnections = fetchConnections();
     });
   }
 
-  // Función para manejar el cierre de sesión
   Future<void> _logout(BuildContext context) async {
     try {
       final token = await JwtStorage.getToken();
 
       if (token != null && token.isNotEmpty) {
-        final response = await ApiService.logout(token);
+        final response = await AuthService.logout(token);
         if (response != null && response.statusCode == 200) {
           await JwtStorage.clearToken();
           Navigator.pushReplacement(
@@ -50,6 +51,94 @@ class _HomeScreenState extends State<HomeScreen> {
         const SnackBar(content: Text('An error occurred.')),
       );
     }
+  }
+
+  Future<void> createConnection(String host, String port, String username, String password) async {
+
+    try{
+      await apiService.addConnection(host,port,username,password);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Conexión agregada exitosamente')),
+      );
+    } catch(e){
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
+
+  }
+
+
+  void _showCreateConnectionForm() {
+    final _formKey = GlobalKey<FormState>();
+    String host = '';
+    String port = '';
+    String username = '';
+    String password = '';
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text('Crear Nueva Conexión'),
+          content: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: 'Host'),
+                    onSaved: (value) => host = value ?? '',
+                    validator: (value) =>
+                    value == null || value.isEmpty ? 'Campo requerido' : null,
+                  ),
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: 'Port'),
+                    onSaved: (value) => port = value ?? '',
+                    validator: (value) =>
+                    value == null || value.isEmpty ? 'Campo requerido' : null,
+                    keyboardType: TextInputType.number,
+                  ),
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: 'Username'),
+                    onSaved: (value) => username = value ?? '',
+                    validator: (value) =>
+                    value == null || value.isEmpty ? 'Campo requerido' : null,
+                  ),
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: 'Password'),
+                    onSaved: (value) => password = value ?? '',
+                    validator: (value) =>
+                    value == null || value.isEmpty ? 'Campo requerido' : null,
+                    obscureText: true,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  createConnection(host, port, username, password);
+                  Navigator.pop(context);
+                  _refreshConnections(); // Opcional: Actualiza la lista
+                }
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -172,6 +261,10 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           },
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showCreateConnectionForm,
+        child: const Icon(Icons.add),
       ),
     );
   }

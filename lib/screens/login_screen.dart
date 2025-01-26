@@ -29,8 +29,8 @@ class _LoginScreenState extends State<LoginScreen> {
   void authenticate() async {
     if (_formKey.currentState!.validate()) {
       final response = isLogin
-          ? await ApiService.login(usernameController.text, passwordController.text)
-          : await ApiService.register(
+          ? await AuthService.login(usernameController.text, passwordController.text)
+          : await AuthService.register(
           nameController.text, usernameController.text, emailController.text, passwordController.text);
 
       if (response != null) {
@@ -89,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               TextButton(
                 onPressed: toggleAuth,  // Cambia entre login y registro
-                child: Text(isLogin ? "Don't have an account? Register" : 'Login'),
+                child: Text(isLogin ? "Don't have an account? Register" : 'have an account? Login'),
               ),
             ],
           ),

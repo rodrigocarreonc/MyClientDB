@@ -8,6 +8,44 @@ class ApiService {
 
   ApiService({required this.baseUrl});
 
+  // Agregar un nuevo método para enviar la información de la conexión
+  Future<void> addConnection(String host, String port, String username, String password) async {
+    final url = Uri.parse('$baseUrl/add-connection');
+
+    try {
+      // Obtener el JWT desde SharedPreferences
+      final jwtToken = await JwtStorage.getToken();
+
+      if (jwtToken == null) {
+        throw Exception('JWT Token is missing. Please log in again.');
+      }
+
+      final headers = {
+        'Authorization': 'Bearer $jwtToken',
+        'Content-Type': 'application/json',
+      };
+
+      final body = json.encode({
+        'host': host,
+        'port': port,
+        'username': username,
+        'password': password,
+      });
+
+      final response = await http.post(url, headers: headers, body: body);
+
+      if (response.statusCode == 200) {
+        print('Connection added successfully.');
+      } else {
+        final error = json.decode(response.body)['message'] ?? 'Unknown error';
+        throw Exception('Failed to add connection: $error');
+      }
+    } on SocketException {
+      throw ('Upss..\nSin conexión a internet :((');
+    }
+  }
+
+
   // Obtener la lista de bases de datos
   Future<List<Map<String, dynamic>>> fetchDatabases(int connectionId) async {
     final url = Uri.parse('$baseUrl/databases/$connectionId');
@@ -35,7 +73,7 @@ class ApiService {
         );
       }
     } on SocketException{
-      throw Exception("Upss..\nSin conexión a internet :((");
+      throw ("Upss..\nSin conexión a internet :((");
     }
   }
 

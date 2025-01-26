@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'jwt_storage.dart';
 
-class ApiService {
+class AuthService {
   static const String baseUrl = 'https://api.myclientdb.rodrigocarreon.com/api';
 
   // Variable global para almacenar el JWT
