@@ -17,6 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  bool _isPasswordVisible = false; // Variable to control password visibility
 
   // Cambia entre login y registro
   void toggleAuth() {
@@ -37,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
         JwtStorage.saveToken(response);  // Guarda el token en el almacenamiento
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) =>  HomeScreen()),  // Redirige a HomeScreen
+          MaterialPageRoute(builder: (_) => HomeScreen()),  // Redirige a HomeScreen
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -78,8 +79,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               TextFormField(
                 controller: passwordController,
-                decoration: const InputDecoration(labelText: 'Password'),
-                obscureText: true,
+                obscureText: !_isPasswordVisible,  // Toggle password visibility
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  ),
+                ),
                 validator: (value) => value!.isEmpty ? 'Password is required' : null,
               ),
               const SizedBox(height: 20),

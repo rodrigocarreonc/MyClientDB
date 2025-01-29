@@ -253,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       SizedBox(height: 20),
                       Text(
-                        "Desliza hacia abajo para refrescar.",
+                        "¡¡Agrega tu primer conexión!!.",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 16,
