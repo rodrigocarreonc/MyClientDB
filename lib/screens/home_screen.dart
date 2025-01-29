@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:myclientdb/utils/http_get.dart';
 import 'package:myclientdb/utils/auth_service.dart';
 import 'package:myclientdb/utils/jwt_storage.dart';
 import 'connection_screen.dart';
@@ -19,12 +18,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _futureConnections = fetchConnections();
+    _futureConnections = apiService.getConnections();
   }
 
   Future<void> _refreshConnections() async {
     setState(() {
-      _futureConnections = fetchConnections();
+      _futureConnections = apiService.getConnections();
     });
   }
 
@@ -53,37 +52,18 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> createConnection(String host, String port, String username, String password) async {
-
-    try{
-      await apiService.addConnection(host,port,username,password);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Conexión agregada exitosamente')),
-      );
-    } catch(e){
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
-    }
-
-  }
-
-
-  void _showCreateConnectionForm() {
+  void _showAddConnectionForm(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
-    String host = '';
-    String port = '';
-    String username = '';
-    String password = '';
+    String _host = '';
+    String _port = ''; // Se recibe como String para validar
+    String _username = '';
+    String _password = '';
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: const Text('Crear Nueva Conexión'),
+          title: Text('Agregar Nueva Conexión'),
           content: Form(
             key: _formKey,
             child: SingleChildScrollView(
@@ -91,30 +71,48 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextFormField(
-                    decoration: const InputDecoration(labelText: 'Host'),
-                    onSaved: (value) => host = value ?? '',
-                    validator: (value) =>
-                    value == null || value.isEmpty ? 'Campo requerido' : null,
+                    decoration: InputDecoration(labelText: 'Host'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor ingresa el host';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) => _host = value!,
                   ),
                   TextFormField(
-                    decoration: const InputDecoration(labelText: 'Port'),
-                    onSaved: (value) => port = value ?? '',
-                    validator: (value) =>
-                    value == null || value.isEmpty ? 'Campo requerido' : null,
-                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(labelText: 'Puerto'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor ingresa el puerto';
+                      }
+                      if (int.tryParse(value) == null) {
+                        return 'El puerto debe ser un número entero';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) => _port = value!,
                   ),
                   TextFormField(
-                    decoration: const InputDecoration(labelText: 'Username'),
-                    onSaved: (value) => username = value ?? '',
-                    validator: (value) =>
-                    value == null || value.isEmpty ? 'Campo requerido' : null,
+                    decoration: InputDecoration(labelText: 'Usuario'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor ingresa el usuario';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) => _username = value!,
                   ),
                   TextFormField(
-                    decoration: const InputDecoration(labelText: 'Password'),
-                    onSaved: (value) => password = value ?? '',
-                    validator: (value) =>
-                    value == null || value.isEmpty ? 'Campo requerido' : null,
+                    decoration: InputDecoration(labelText: 'Contraseña'),
                     obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor ingresa la contraseña';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) => _password = value!,
                   ),
                 ],
               ),
@@ -122,18 +120,40 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
               onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () async {
                 if (_formKey.currentState!.validate()) {
-                  createConnection(host, port, username, password);
-                  Navigator.pop(context);
-                  _refreshConnections(); // Opcional: Actualiza la lista
+                  _formKey.currentState!.save();
+
+                  // Convertir el puerto a int
+                  final int port = int.parse(_port);
+
+                  final response = await apiService.addConnection(
+                    host: _host,
+                    port: port, // Enviar como int
+                    username: _username,
+                    password: _password,
+                  );
+
+                  if (response != null && response['message'] == 'conecction add') {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Conexión agregada con éxito')),
+                    );
+                    _refreshConnections();
+                    Navigator.of(context).pop();
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error al agregar la conexión')),
+                    );
+                  }
                 }
               },
-              child: const Text('Guardar'),
+              child: Text('Agregar'),
             ),
           ],
         );
@@ -263,8 +283,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showCreateConnectionForm,
-        child: const Icon(Icons.add),
+        onPressed: () => _showAddConnectionForm(context),
+        child: Icon(Icons.add),
+        tooltip: 'Agregar Conexión',
       ),
     );
   }

@@ -8,17 +8,43 @@ class ApiService {
 
   ApiService({required this.baseUrl});
 
-  // Agregar un nuevo método para enviar la información de la conexión
-  Future<void> addConnection(String host, String port, String username, String password) async {
+  Future<List<Map<String, dynamic>>> getConnections() async {
+    final url = Uri.parse('$baseUrl/list-connections');
+
+    try {
+      final jwtToken = await JwtStorage.getToken();
+
+      final headers = {
+        'Authorization': 'Bearer $jwtToken',
+        'Content-Type': 'application/json',
+      };
+
+      final response = await http.get(url, headers: headers);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.cast<Map<String, dynamic>>();
+      } else {
+        throw Exception('Error al obtener las conexiones: ${response.body}');
+      }
+    } on SocketException{
+      throw ('Upss..\nSin conexión a internet :((');
+    }
+    catch (e) {
+      throw Exception('Error de red: ${e.toString()}');
+    }
+  }
+
+  Future<Map<String, dynamic>> addConnection({
+    required String host,
+    required int port, // Cambiado a int
+    required String username,
+    required String password,
+  }) async {
     final url = Uri.parse('$baseUrl/add-connection');
 
     try {
-      // Obtener el JWT desde SharedPreferences
       final jwtToken = await JwtStorage.getToken();
-
-      if (jwtToken == null) {
-        throw Exception('JWT Token is missing. Please log in again.');
-      }
 
       final headers = {
         'Authorization': 'Bearer $jwtToken',
@@ -27,21 +53,22 @@ class ApiService {
 
       final body = json.encode({
         'host': host,
-        'port': port,
+        'port': port, // Enviado como int
         'username': username,
         'password': password,
       });
 
       final response = await http.post(url, headers: headers, body: body);
 
-      if (response.statusCode == 200) {
-        print('Connection added successfully.');
+      if (response.statusCode == 201) {
+        return jsonDecode(response.body);
       } else {
-        final error = json.decode(response.body)['message'] ?? 'Unknown error';
-        throw Exception('Failed to add connection: $error');
+        throw Exception('Error al agregar la conexión: ${response.body}');
       }
     } on SocketException {
       throw ('Upss..\nSin conexión a internet :((');
+    } catch (e) {
+      throw Exception('Error de red: ${e.toString()}');
     }
   }
 
