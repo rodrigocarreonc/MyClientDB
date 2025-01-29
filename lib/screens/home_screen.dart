@@ -15,6 +15,9 @@ class _HomeScreenState extends State<HomeScreen> {
   late Future<List<Map<String, dynamic>>> _futureConnections;
   final ApiService apiService = ApiService(baseUrl: Server.baseUrl);
 
+  bool _obscureText = true; // To control password visibility
+  String? _host, _port, _username, _password;
+
   @override
   void initState() {
     super.initState();
@@ -54,108 +57,121 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _showAddConnectionForm(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
-    String _host = '';
-    String _port = ''; // Se recibe como String para validar
-    String _username = '';
-    String _password = '';
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text('Agregar Nueva Conexión'),
-          content: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    decoration: InputDecoration(labelText: 'Host'),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor ingresa el host';
-                      }
-                      return null;
-                    },
-                    onSaved: (value) => _host = value!,
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Agregar Nueva Conexión'),
+              content: Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        decoration: InputDecoration(labelText: 'Host'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor ingresa el host';
+                          }
+                          return null;
+                        },
+                        onSaved: (value) => _host = value!,
+                      ),
+                      TextFormField(
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(labelText: 'Puerto'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor ingresa el puerto';
+                          }
+                          if (int.tryParse(value) == null) {
+                            return 'El puerto debe ser un número entero';
+                          }
+                          return null;
+                        },
+                        onSaved: (value) => _port = value!,
+                      ),
+                      TextFormField(
+                        decoration: InputDecoration(labelText: 'Usuario'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor ingresa el usuario';
+                          }
+                          return null;
+                        },
+                        onSaved: (value) => _username = value!,
+                      ),
+                      TextFormField(
+                        obscureText: _obscureText, // Control password visibility
+                        decoration: InputDecoration(
+                          labelText: 'Contraseña',
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscureText ? Icons.visibility_off : Icons.visibility,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscureText = !_obscureText; // Toggle password visibility
+                              });
+                            },
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor ingresa la contraseña';
+                          }
+                          return null;
+                        },
+                        onSaved: (value) => _password = value!,
+                      ),
+                    ],
                   ),
-                  TextFormField(
-                    decoration: InputDecoration(labelText: 'Puerto'),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor ingresa el puerto';
-                      }
-                      if (int.tryParse(value) == null) {
-                        return 'El puerto debe ser un número entero';
-                      }
-                      return null;
-                    },
-                    onSaved: (value) => _port = value!,
-                  ),
-                  TextFormField(
-                    decoration: InputDecoration(labelText: 'Usuario'),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor ingresa el usuario';
-                      }
-                      return null;
-                    },
-                    onSaved: (value) => _username = value!,
-                  ),
-                  TextFormField(
-                    decoration: InputDecoration(labelText: 'Contraseña'),
-                    obscureText: true,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor ingresa la contraseña';
-                      }
-                      return null;
-                    },
-                    onSaved: (value) => _password = value!,
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () async {
-                if (_formKey.currentState!.validate()) {
-                  _formKey.currentState!.save();
-
-                  // Convertir el puerto a int
-                  final int port = int.parse(_port);
-
-                  final response = await apiService.addConnection(
-                    host: _host,
-                    port: port, // Enviar como int
-                    username: _username,
-                    password: _password,
-                  );
-
-                  if (response != null && response['message'] == 'conecction add') {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Conexión agregada con éxito')),
-                    );
-                    _refreshConnections();
+              actions: [
+                TextButton(
+                  onPressed: () {
                     Navigator.of(context).pop();
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error al agregar la conexión')),
-                    );
-                  }
-                }
-              },
-              child: Text('Agregar'),
-            ),
-          ],
+                  },
+                  child: Text('Cancelar'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate()) {
+                      _formKey.currentState!.save();
+
+                      // Convertir el puerto a int
+                      final int port = int.parse(_port!);
+
+                      final response = await apiService.addConnection(
+                        host: _host!,
+                        port: port, // Enviar como int
+                        username: _username!,
+                        password: _password!,
+                      );
+
+                      if (response != null && response['message'] == 'conecction add') {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Conexión agregada con éxito')),
+                        );
+                        _refreshConnections();
+                        Navigator.of(context).pop();
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error al agregar la conexión')),
+                        );
+                      }
+                    }
+                  },
+                  child: Text('Agregar'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -173,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: _refreshConnections,
-        child: FutureBuilder<List<Map<String, dynamic>>>(
+        child: FutureBuilder<List<Map<String, dynamic>>>( // Future to load connections
           future: _futureConnections,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
