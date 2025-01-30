@@ -11,7 +11,7 @@ class ConnectionController extends Controller
 {
     public function listConnections(){
         $cliente = auth()->user();
-        $connections = Connection::where('id_usuario', $cliente->id)->select('id','host', 'port', 'username', 'password')
+        $connections = Connection::where('user_id', $cliente->user_id)->select('connection_id','host', 'port', 'username', 'password')
         ->get();
         return response()->json($connections);
     }
@@ -82,6 +82,8 @@ class ConnectionController extends Controller
                 'message' => 'Conexión no encontrada o inexistente'
             ], 404);
         }
+        
+        $password = decrypt($connection->password);
 
         $request->validate([
             'database' => 'required|string',
@@ -94,7 +96,7 @@ class ConnectionController extends Controller
                 'port' => $connection->port,
                 'database' => $request->database,
                 'username' => $connection->username,
-                'password' => $connection->password,
+                'password' => $password,
                 'charset' => 'utf8mb4',
                 'collation' => 'utf8mb4_unicode_ci',
             ],
@@ -117,6 +119,8 @@ class ConnectionController extends Controller
                 'message' => 'Conexión no encontrada o inexistente'
             ], 404);
         }
+        
+        $password = decrypt($connection->password);
 
         $request->validate([
             'database' => 'required|string',
@@ -130,7 +134,7 @@ class ConnectionController extends Controller
                 'port' => $connection->port,
                 'username' => $connection->username,
                 'database' => $request->database,
-                'password' => $connection->password,
+                'password' => $password,
                 'charset' => 'utf8mb4',
                 'collation' => 'utf8mb4_unicode_ci',
             ],
