@@ -36,7 +36,9 @@ Bienvenido a **MyClientDB**, una aplicación móvil desarrollada en **Flutter** 
 
 3️⃣ **Visualizar conexiones**: Explora tus servidores en la lista y accede a sus bases de datos.
 
-4️⃣ **Cerrar sesión**: Puedes cerrar sesión de forma segura desde el menú.
+4️⃣**Realizar consultas**: Obten resultados de tus consultas a tus bases de datos remotas.
+
+5️⃣**Cerrar sesión**: Puedes cerrar sesión de forma segura desde el menú.
 
 ---
 
