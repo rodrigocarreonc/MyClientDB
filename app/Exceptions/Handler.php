@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
+use Illuminate\Auth\AuthenticationException;
 
 class Handler extends ExceptionHandler
 {
@@ -44,5 +45,20 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+    }
+
+    /**
+     * Render an exception into an HTTP response.
+     */
+    public function render($request, Throwable $exception)
+    {
+        // Manejar excepciones de autenticación
+        if ($exception instanceof AuthenticationException) {
+            return response()->json([
+                'message' => 'Unauthorized, please login',
+            ], 401);
+        }
+
+        return parent::render($request, $exception);
     }
 }
