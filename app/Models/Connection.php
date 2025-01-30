@@ -8,9 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class Connection extends Model
 {
     use HasFactory;
-
-    protected $table = 'connections';
     public $timestamps = false;
 
-    public $fillable = ['host','port','username','password','id_usuario'];
+    protected $table = 'connections';
+    protected $primaryKey = 'connection_id';
+
+    protected $fillable = ['host','port','username','password','user_id'];
 }

@@ -29,8 +29,8 @@ class ConnectionController extends Controller
             'host' => $request->host,
             'port' => $request->port,
             'username' => $request->username,
-            'password' => $request->password,
-            'id_usuario' => $cliente->id,
+            'password' => encrypt($request->password),
+            'user_id' => $cliente->user_id,
         ]);
 
         return response()->json([
@@ -48,6 +48,8 @@ class ConnectionController extends Controller
             ], 404);
         }
 
+        $password = decrypt($connection->password);
+
         // Configuración de la conexión a la base de datos remota
         config([
             'database.connections.mysql_remote' => [
@@ -56,7 +58,7 @@ class ConnectionController extends Controller
                 'port' => $connection->port,
                 'database' => 'information_schema', // Usamos information_schema para obtener bases de datos
                 'username' => $connection->username,
-                'password' => $connection->password,
+                'password' => $password,
                 'charset' => 'utf8mb4',
                 'collation' => 'utf8mb4_unicode_ci',
             ],
