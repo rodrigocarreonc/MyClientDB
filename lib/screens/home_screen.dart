@@ -287,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         MaterialPageRoute(
                           builder: (context) => ConnectionScreen(
                               host: conexion['host'],
-                              connectionId: conexion['id']),
+                              connectionId: conexion['connection_id']),
                         ),
                       );
                     },

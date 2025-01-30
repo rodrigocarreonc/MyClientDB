@@ -24,7 +24,8 @@ class ApiService {
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         return data.cast<Map<String, dynamic>>();
-      } else {
+      }
+      else {
         throw Exception('Error al obtener las conexiones: ${response.body}');
       }
     } on SocketException{
