@@ -4,7 +4,7 @@ import '../utils/server.dart';
 
 class ConnectionScreen extends StatefulWidget {
   final int connectionId;
-  final String host; // Agregado
+  final String host;
 
   const ConnectionScreen({Key? key, required this.connectionId, required this.host}) : super(key: key);
 
@@ -110,7 +110,6 @@ class _ConnectionScreenState extends State<ConnectionScreen>
     }
   }
 
-
   void _showMessage(String message) {
     showDialog(
       context: context,
@@ -126,7 +125,6 @@ class _ConnectionScreenState extends State<ConnectionScreen>
       ),
     );
   }
-
 
   Widget _buildQueryResultTable() {
     if (queryResult.isEmpty) {
@@ -159,7 +157,6 @@ class _ConnectionScreenState extends State<ConnectionScreen>
     );
   }
 
-
   Widget _buildQuerySection() {
     return Expanded(
       child: Column(
@@ -168,17 +165,32 @@ class _ConnectionScreenState extends State<ConnectionScreen>
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               controller: _queryController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
                 labelText: 'Consulta',
+                labelStyle: TextStyle(color: Colors.grey.shade600),
                 hintText: 'Escribe tu consulta aquí',
+                filled: true,
+                fillColor: Colors.grey.shade50,
               ),
               maxLines: 3,
             ),
           ),
           ElevatedButton(
             onPressed: _runQuery,
-            child: const Text('Ejecutar'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1E88E5), // Azul destacado
+              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              'Ejecutar',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
           const SizedBox(height: 16),
           Expanded(
@@ -189,7 +201,6 @@ class _ConnectionScreenState extends State<ConnectionScreen>
     );
   }
 
-
   Widget _buildDatabaseExpansionTile() {
     if (databases.isEmpty) {
       return const Padding(
@@ -197,17 +208,22 @@ class _ConnectionScreenState extends State<ConnectionScreen>
         child: Text('No hay bases de datos disponibles.'),
       );
     }
-    return ExpansionTile(
-      title: const Text('Bases de Datos'),
-      children: databases.map((db) {
-        final databaseName = db['Database'] ?? 'Desconocido';
-        return ListTile(
-          title: Text(databaseName),
-          onTap: () {
-            _loadTables(databaseName);
-          },
-        );
-      }).toList(),
+    return Card(
+      margin: const EdgeInsets.all(10),
+      elevation: 2,
+      child: ExpansionTile(
+        title: const Text('Bases de Datos'),
+        children: databases.map((db) {
+          final databaseName = db['Database'] ?? 'Desconocido';
+          return ListTile(
+            leading: Icon(Icons.storage, color: Colors.blue.shade800), // Icono de base de datos
+            title: Text(databaseName),
+            onTap: () {
+              _loadTables(databaseName);
+            },
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -218,36 +234,48 @@ class _ConnectionScreenState extends State<ConnectionScreen>
         child: Text('No hay tablas disponibles para la base de datos seleccionada.'),
       );
     }
-    return ExpansionTile(
-      title: const Text('Tablas'),
-      children: tables.map((table) {
-        final tableName = table['Tables_in_$selectedDatabase'] ?? 'Desconocido';
-        return ListTile(
-          title: Text(tableName),
-        );
-      }).toList(),
+    return Card(
+      margin: const EdgeInsets.all(10),
+      elevation: 2,
+      child: ExpansionTile(
+        title: const Text('Tablas'),
+        children: tables.map((table) {
+          final tableName = table['Tables_in_$selectedDatabase'] ?? 'Desconocido';
+          return ListTile(
+            leading: Icon(Icons.table_chart, color: Colors.blue.shade800), // Icono de tabla
+            title: Text(tableName),
+          );
+        }).toList(),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, // Fondo blanco
       appBar: AppBar(
         title: Text(
           selectedDatabase.isEmpty
-              ? 'Conexión: ${widget.host}'  // Muestra el host si no hay base de datos seleccionada
+              ? 'Conexión: ${widget.host}' // Muestra el host si no hay base de datos seleccionada
               : 'Conexión: ${widget.host} \n$selectedDatabase', // Muestra el nombre de la base de datos seleccionada
-          style: TextStyle(fontSize: 18),
+          style: TextStyle(
+            fontSize: 18,
+            color: Colors.grey.shade800,
+          ),
         ),
+        backgroundColor: Colors.white,
+        elevation: 0,
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
             Tab(text: 'Bases de Datos'),
             Tab(text: 'Consulta'),
           ],
+          labelColor: Colors.blue.shade800, // Color de las pestañas seleccionadas
+          unselectedLabelColor: Colors.grey.shade600, // Color de las pestañas no seleccionadas
         ),
       ),
-
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : TabBarView(
@@ -270,7 +298,6 @@ class _ConnectionScreenState extends State<ConnectionScreen>
       ),
     );
   }
-
 
   @override
   void dispose() {
