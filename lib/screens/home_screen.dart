@@ -137,7 +137,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: Text('Cancelar'),
+                  child: Text(
+                    'Cancelar',
+                    style: TextStyle(color: Colors.grey.shade800),
+                  ),
                 ),
                 TextButton(
                   onPressed: () async {
@@ -167,7 +170,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       }
                     }
                   },
-                  child: Text('Agregar'),
+                  child: Text(
+                    'Agregar',
+                    style: TextStyle(color: Colors.blue.shade800),
+                  ),
                 ),
               ],
             );
@@ -180,16 +186,22 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, // Fondo blanco
       appBar: AppBar(
-        title: const Text('Lista de Conexiones'),
+        title: Text(
+          'Lista de Conexiones',
+          style: TextStyle(color: Colors.grey.shade800),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.exit_to_app),
+          icon: Icon(Icons.exit_to_app, color: Colors.grey.shade800),
           onPressed: () => _logout(context),
         ),
       ),
       body: RefreshIndicator(
         onRefresh: _refreshConnections,
-        child: FutureBuilder<List<Map<String, dynamic>>>( // Future to load connections
+        child: FutureBuilder<List<Map<String, dynamic>>>(
           future: _futureConnections,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -237,27 +249,27 @@ class _HomeScreenState extends State<HomeScreen> {
               return Center(
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  child: const Column(
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.inbox, size: 80, color: Colors.grey),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       Text(
                         'No hay conexiones disponibles',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w500,
-                          color: Colors.grey,
+                          color: Colors.grey.shade800,
                         ),
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       Text(
                         "¡¡Agrega tu primer conexión!!.",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 16,
-                          color: Colors.grey,
+                          color: Colors.grey.shade600,
                         ),
                       ),
                     ],
@@ -273,14 +285,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 final conexion = conexiones[index];
                 return Card(
                   margin: const EdgeInsets.all(10),
+                  elevation: 2,
                   child: ListTile(
-                    leading: const Icon(Icons.cloud),
-                    title: Text('Host: ${conexion['host']}'),
-                    subtitle: Text(
-                      'Puerto: ${conexion['port']}'
-                          '\nUsuario: ${conexion['username']}',
+                    leading: Icon(Icons.cloud, color: Colors.blue),
+                    title: Text(
+                      'Host: ${conexion['host']}',
+                      style: TextStyle(color: Colors.grey.shade800),
                     ),
-                    isThreeLine: true,
+                    subtitle: Text(
+                      'Puerto: ${conexion['port']}\nUsuario: ${conexion['username']}',
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
                     onTap: () {
                       Navigator.push(
                         context,
@@ -300,7 +315,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddConnectionForm(context),
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add, color: Colors.white),
+        backgroundColor: Colors.blue.shade800,
         tooltip: 'Agregar Conexión',
       ),
     );
