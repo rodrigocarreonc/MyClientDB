@@ -39,6 +39,35 @@ class ConnectionController extends Controller
         ],201);
     }
 
+    public function testConnection(Request $request){
+        $request->validate([
+            'host' => 'required|string',
+            'port' => 'required|integer',
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ]);
+        
+        config([
+            'database.connections.mysql_remote' => [
+                'driver' => 'mysql',
+                'host' => $request->host,
+                'port' => $request->port,
+                'database' => 'information_schema',
+                'username' => $request->username,
+                'password' => $request->password,
+                'charset' => 'utf8mb4',
+                'collation' => 'utf8mb4_unicode_ci',
+            ],
+        ]);
+
+        try {
+            DB::connection('mysql_remote')->getPdo();
+            return response()->json(['message' => 'Connection successful'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Connection failed: ' . $e->getMessage()], 404);
+        }
+    }
+
     public function getDatabases($id, Request $request){
         $connection = Connection::find($id);
 

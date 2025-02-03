@@ -42,4 +42,5 @@ Route::group([
     Route::get('/databases/{id}', [ConnectionController::class, 'getDatabases']);
     Route::post('/list-tables/{id}', [ConnectionController::class, 'listTables']);
     Route::post('/execute-query/{id}', [ConnectionController::class, 'executeQuery']);
+    Route::post('/test-connection', [ConnectionController::class, 'testConnection']);
 });
