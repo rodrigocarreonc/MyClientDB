@@ -36,6 +36,42 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> testConnection({
+    required String host,
+    required int port, // Cambiado a int
+    required String username,
+    required String password,
+  }) async {
+    final url = Uri.parse('$baseUrl/test-connection');
+    try{
+      final jwtToken = await JwtStorage.getToken();
+
+      final headers = {
+        'Authorization':'Bearer $jwtToken',
+        'Content-Type':'application/json',
+      };
+
+      final body = json.encode({
+        'host':host,
+        'port':port,
+        'username':username,
+        'password':password,
+      });
+
+      final response = await http.post(url,headers: headers,body: body);
+
+      if (response.statusCode == 200 || response.statusCode == 404){
+        return jsonDecode(response.body);
+      }else{
+        throw ('Ocurrio un error: ${response.body}');
+      }
+    }on SocketException {
+      throw ('Upss..\nSin conexión a internet :((');
+    } catch (e) {
+      throw ('Error de red: ${e.toString()}');
+    }
+}
+
   Future<Map<String, dynamic>> addConnection({
     required String host,
     required int port, // Cambiado a int

@@ -55,6 +55,41 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _showConnectionSuccessDialog(BuildContext context, String message) {
+    final bool isSuccess = message == 'Connection successful';
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isSuccess ? Icons.check_circle : Icons.warning, // Ícono condicional
+                color: isSuccess ? Colors.green.shade800 : Colors.orange.shade800, // Color condicional
+                size: 40,
+              ),
+              const SizedBox(height: 18),
+              Text(
+                message,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade800,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _showAddConnectionForm(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
 
@@ -133,47 +168,79 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(
-                    'Cancelar',
-                    style: TextStyle(color: Colors.grey.shade800),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
-
-                      // Convertir el puerto a int
-                      final int port = int.parse(_port!);
-
-                      final response = await apiService.addConnection(
-                        host: _host!,
-                        port: port, // Enviar como int
-                        username: _username!,
-                        password: _password!,
-                      );
-
-                      if (response != null && response['message'] == 'conecction add') {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Conexión agregada con éxito')),
-                        );
-                        _refreshConnections();
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween, // Distribuye los botones
+                  children: [
+                    TextButton(
+                      onPressed: () {
                         Navigator.of(context).pop();
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error al agregar la conexión')),
-                        );
-                      }
-                    }
-                  },
-                  child: Text(
-                    'Agregar',
-                    style: TextStyle(color: Colors.blue.shade800),
-                  ),
+                      },
+                      child: Text(
+                        'Cancelar',
+                        style: TextStyle(color: Colors.grey.shade800),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        if (_formKey.currentState!.validate()) {
+                          _formKey.currentState!.save();
+
+                          // Convertir el puerto a int
+                          final int port = int.parse(_port!);
+
+                          try {
+                            final response = await apiService.testConnection(
+                              host: _host!,
+                              port: port, // Enviar como int
+                              username: _username!,
+                              password: _password!,
+                            );
+
+                            _showConnectionSuccessDialog(context, response['message']); // Muestra el mensaje de éxito
+                          } catch (e) {
+                            _showConnectionSuccessDialog(context, e.toString());
+                          }
+                        }
+                      },
+                      child: Text(
+                        'Probar',
+                        style: TextStyle(color: Colors.blue.shade800),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        if (_formKey.currentState!.validate()) {
+                          _formKey.currentState!.save();
+
+                          // Convertir el puerto a int
+                          final int port = int.parse(_port!);
+
+                          final response = await apiService.addConnection(
+                            host: _host!,
+                            port: port, // Enviar como int
+                            username: _username!,
+                            password: _password!,
+                          );
+
+                          if (response['message'] == 'conecction add') {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Conexión agregada con éxito')),
+                            );
+                            _refreshConnections();
+                            Navigator.of(context).pop();
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error al agregar la conexión')),
+                            );
+                          }
+                        }
+                      },
+                      child: Text(
+                        'Agregar',
+                        style: TextStyle(color: Colors.green.shade800),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             );
