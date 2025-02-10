@@ -39,6 +39,46 @@ class ConnectionController extends Controller
         ],201);
     }
 
+    public function editConnection($id, Request $request){
+        $connection = Connection::find($id);
+        if(!$connection){
+            return response()->json([
+                'message' => 'Conexión no encontrada o inexistente'
+            ], 404);
+        }
+        $request->validate([
+            'host' => 'sometimes|string',
+            'port' => 'sometimes|integer',
+            'username' => 'sometimes|string',
+            'password' => 'sometimes|string',
+        ]);
+
+        $connection->update([
+            'host' => $request->host,
+            'port' => $request->port,
+            'username' => $request->username,
+            'password' => encrypt($request->password),
+        ]);
+
+        return response()->json([
+            'message' => 'Conexión actualizada',
+            'connection' => $connection
+        ]);
+    }
+
+    public function deleteConnection($id){
+        $connection = Connection::find($id);
+        if(!$connection){
+            return response()->json([
+                'message' => 'Conexión no encontrada o inexistente'
+            ], 404);
+        }
+        $connection->delete();
+        return response()->json([
+            'message' => 'Conexión eliminada'
+        ]);
+    }
+
     public function testConnection(Request $request){
         $request->validate([
             'host' => 'required|string',

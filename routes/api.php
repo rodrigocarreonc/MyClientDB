@@ -39,6 +39,9 @@ Route::group([
 ], function ($router) {
     Route::get('/list-connections', [ConnectionController::class, 'listConnections']);
     Route::post('/add-connection', [ConnectionController::class, 'addConnection']);
+    Route::put('/edit-connection/{id}', [ConnectionController::class, 'editConnection']);
+    Route::delete('/delete-connection/{id}', [ConnectionController::class, 'deleteConnection']);
+
     Route::get('/databases/{id}', [ConnectionController::class, 'getDatabases']);
     Route::post('/list-tables/{id}', [ConnectionController::class, 'listTables']);
     Route::post('/execute-query/{id}', [ConnectionController::class, 'executeQuery']);
