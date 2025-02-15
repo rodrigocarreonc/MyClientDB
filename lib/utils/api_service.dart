@@ -109,6 +109,68 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> editConnection({
+    required int connectionId,
+    required String host,
+    required int port,
+    required String username,
+    required String password,
+  }) async {
+    final url = Uri.parse('$baseUrl/edit-connection/$connectionId');
+
+    try {
+      final jwtToken = await JwtStorage.getToken();
+
+      final headers = {
+        'Authorization': 'Bearer $jwtToken',
+        'Content-Type': 'application/json',
+      };
+
+      final body = json.encode({
+        'host': host,
+        'port': port,
+        'username': username,
+        'password': password,
+      });
+
+      final response = await http.put(url, headers: headers, body: body);
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Error al editar la conexión: ${response.body}');
+      }
+    } on SocketException {
+      throw ('Upss..\nSin conexión a internet :((');
+    } catch (e) {
+      throw Exception('Error de red: ${e.toString()}');
+    }
+  }
+
+  Future<Map<String, dynamic>> deleteConnection(int connectionId) async {
+    final url = Uri.parse('$baseUrl/delete-connection/$connectionId');
+
+    try {
+      final jwtToken = await JwtStorage.getToken();
+
+      final headers = {
+        'Authorization': 'Bearer $jwtToken',
+        'Content-Type': 'application/json',
+      };
+
+      final response = await http.delete(url, headers: headers);
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Error al eliminar la conexión: ${response.body}');
+      }
+    } on SocketException {
+      throw ('Upss..\nSin conexión a internet :((');
+    } catch (e) {
+      throw Exception('Error de red: ${e.toString()}');
+    }
+  }
 
   // Obtener la lista de bases de datos
   Future<List<Map<String, dynamic>>> fetchDatabases(int connectionId) async {

@@ -92,7 +92,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _showAddConnectionForm(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
-
     showDialog(
       context: context,
       builder: (context) {
@@ -250,6 +249,194 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _showEditConnectionForm(BuildContext context, Map<String, dynamic> connection) {
+    final _formKey = GlobalKey<FormState>();
+    final TextEditingController hostController = TextEditingController(text: connection['host']);
+    final TextEditingController portController = TextEditingController(text: connection['port'].toString());
+    final TextEditingController usernameController = TextEditingController(text: connection['username']);
+    final TextEditingController passwordController = TextEditingController(text: connection['password']);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Editar Conexión'),
+              content: Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: hostController,
+                        decoration: InputDecoration(labelText: 'Host'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor ingresa el host';
+                          }
+                          return null;
+                        },
+                      ),
+                      TextFormField(
+                        controller: portController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(labelText: 'Puerto'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor ingresa el puerto';
+                          }
+                          if (int.tryParse(value) == null) {
+                            return 'El puerto debe ser un número entero';
+                          }
+                          return null;
+                        },
+                      ),
+                      TextFormField(
+                        controller: usernameController,
+                        decoration: InputDecoration(labelText: 'Usuario'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor ingresa el usuario';
+                          }
+                          return null;
+                        },
+                      ),
+                      TextFormField(
+                        controller: passwordController,
+                        obscureText: _obscureText,
+                        readOnly: true,// Control password visibility
+                        decoration: InputDecoration(
+                          labelText: 'Contraseña',
+                          suffixIcon: IconButton(
+                            icon: Icon(Icons.close),
+                            onPressed: () {
+                              setState((){
+                                passwordController.clear();
+                              });
+                            },
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor ingresa la contraseña';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(
+                    'Cancelar',
+                    style: TextStyle(color: Colors.grey.shade800),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate()) {
+                      final int connectionId = connection['connection_id'];
+                      final String host = hostController.text;
+                      final int port = int.parse(portController.text);
+                      final String username = usernameController.text;
+                      final String password = passwordController.text;
+
+                      try {
+                        final response = await apiService.editConnection(
+                          connectionId: connectionId,
+                          host: host,
+                          port: port,
+                          username: username,
+                          password: password,
+                        );
+
+                        if (response['message'] == 'Conexión actualizada') {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Conexión actualizada con éxito')),
+                          );
+                          _refreshConnections();
+                          Navigator.of(context).pop();
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error al actualizar la conexión')),
+                          );
+                        }
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error: $e')),
+                        );
+                      }
+                    }
+                  },
+                  child: Text(
+                    'Guardar',
+                    style: TextStyle(color: Colors.blue.shade800),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showDeleteConfirmationDialog(BuildContext context, int connectionId) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Eliminar Conexión'),
+          content: Text('¿Estás seguro de que deseas eliminar esta conexión?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Cancelar',
+                style: TextStyle(color: Colors.grey.shade800),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                try {
+                  final response = await apiService.deleteConnection(connectionId);
+                  if (response['message'] == 'Conexión eliminada') {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Conexión eliminada con éxito')),
+                    );
+                    _refreshConnections();
+                    Navigator.of(context).pop();
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error al eliminar la conexión')),
+                    );
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: $e')),
+                  );
+                }
+              },
+              child: Text(
+                'Eliminar',
+                style: TextStyle(color: Colors.red.shade800),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -362,6 +549,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     subtitle: Text(
                       'Puerto: ${conexion['port']}\nUsuario: ${conexion['username']}',
                       style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                    trailing: PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'edit') {
+                          _showEditConnectionForm(context, conexion);
+                        } else if (value == 'delete') {
+                          _showDeleteConfirmationDialog(context, conexion['connection_id']);
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'edit',
+                          child: Text('Editar'),
+                        ),
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Text('Eliminar'),
+                        ),
+                      ],
                     ),
                     onTap: () {
                       Navigator.push(
