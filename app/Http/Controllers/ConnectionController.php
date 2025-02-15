@@ -46,19 +46,14 @@ class ConnectionController extends Controller
                 'message' => 'Conexión no encontrada o inexistente'
             ], 404);
         }
-        $request->validate([
+        $validatedData = $request->validate([
             'host' => 'sometimes|string',
             'port' => 'sometimes|integer',
             'username' => 'sometimes|string',
             'password' => 'sometimes|string',
         ]);
 
-        $connection->update([
-            'host' => $request->host,
-            'port' => $request->port,
-            'username' => $request->username,
-            'password' => encrypt($request->password),
-        ]);
+        $connection->update($validatedData);
 
         return response()->json([
             'message' => 'Conexión actualizada',
