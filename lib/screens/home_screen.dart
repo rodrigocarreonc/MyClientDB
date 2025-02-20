@@ -57,7 +57,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _showConnectionSuccessDialog(BuildContext context, String message) {
     final bool isSuccess = message == 'Connection successful';
-
     showDialog(
       context: context,
       builder: (context) {
@@ -569,15 +568,26 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ConnectionScreen(
-                              host: conexion['host'],
-                              connectionId: conexion['connection_id']),
-                        ),
-                      );
+                    onTap: () async {
+                      try{
+                        final response = await apiService.testConnection(
+                            host: conexion['host'],
+                            port: conexion['port'],
+                            username: conexion['username'],
+                            password: conexion['password']
+                        );
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ConnectionScreen(
+                                host: conexion['host'],
+                                connectionId: conexion['connection_id']),
+                          ),
+                        );
+                      }catch(e){
+                        _showConnectionSuccessDialog(context, e.toString());
+                      }
                     },
                   ),
                 );
